@@ -1,0 +1,131 @@
+package frc.robot.subsystems.swerve.real;
+
+import static edu.wpi.first.units.Units.*;
+
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
+import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
+
+import edu.wpi.first.units.Measure.*;
+
+import frc.robot.config.RobotConfig;
+import frc.robot.config.RobotConfig.CAN;
+import frc.robot.utils.MiscUtils;
+import frc.robot.utils.OptixSpark;
+
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Rotation2d;
+import frc.robot.subsystems.swerve.SwerveModuleDataAutoLogged;
+import frc.robot.config.SwerveConfig;
+import frc.robot.subsystems.swerve.SwerveModuleIO;
+import frc.robot.config.SwerveConfig.Drivetrain;
+import frc.robot.config.SwerveConfig.Motor;
+
+public class SwerveModuleSpark implements SwerveModuleIO {
+    private final SwerveModuleDataAutoLogged data;
+
+    private final OptixSpark drive;
+    private final OptixSpark turn;
+
+    private final CANcoder absoluteEncoder;
+    private final Rotation2d absoluteEncoderOffset;
+
+    public SwerveModuleSpark(int index, SwerveModuleDataAutoLogged moduleData) {
+        data = moduleData;
+
+        data.index = index;
+
+        drive = OptixSpark.ofSparkMax(CAN.DRIVE_MOTOR_IDS[index]);
+        turn = OptixSpark.ofSparkMax(CAN.TURN_MOTOR_IDS[index]);
+
+        drive
+                .setPositionConversionFactor((Math.PI * Drivetrain.WHEEL_DIAMETER.in(Meters) / Motor.DRIVE_GEARING))
+                .setVelocityConversionFactor(
+                        (Math.PI * Drivetrain.WHEEL_DIAMETER.in(Meters) / (60 * Motor.DRIVE_GEARING)))
+                .setSmartCurrentLimit(SwerveConfig.Motor.STALL_CURRENT, SwerveConfig.Motor.FREE_CURRENT)
+                .setIdleMode(IdleMode.kBrake);
+        turn
+                .setPositionConversionFactor((2.0 * Math.PI) / Motor.TURN_GEARING)
+                .setVelocityConversionFactor(2.0 * Math.PI / (Motor.TURN_GEARING * 60))
+                .setSmartCurrentLimit(SwerveConfig.Motor.STALL_CURRENT, SwerveConfig.Motor.FREE_CURRENT)
+                .setIdleMode(IdleMode.kBrake)
+                .setPositionWrapping(-Math.PI, Math.PI);
+
+        boolean turnInverted = Motor.TURN_INVERTED[index];
+
+        turn.setInverted(turnInverted);
+
+        drive.apply();
+        turn.apply();
+
+        absoluteEncoder = new CANcoder(CAN.CANCODER_IDS[index]);
+        absoluteEncoderOffset = Motor.CANCODER_OFFSET[index];
+
+        Rotation2d absEncoderAngle = Rotation2d.fromRotations(absoluteEncoder.getPosition().getValueAsDouble());
+        turn.setPosition(absEncoderAngle.minus(absoluteEncoderOffset).getRadians());
+
+        absoluteEncoder.optimizeBusUtilization();
+        absoluteEncoder.getAbsolutePosition()
+                .setUpdateFrequency(RobotConfig.Optimizations.NON_ESSENTIAL_CAN_REFRESH_HZ);
+    }
+
+    @Override
+    public void setDriveVoltage(double volts) {
+        double clamped = MiscUtils.voltageClamp(volts);
+        data.driveDesiredVolts = clamped;
+        drive.setVoltage(clamped);
+    }
+
+    @Override
+    public void setTurnVoltage(double volts) {
+        double clamped = MiscUtils.voltageClamp(volts);
+        data.turnDesiredVolts = clamped;
+        turn.setVoltage(clamped);
+    }
+
+    @Override
+    public void setDriveBrakeMode(boolean enable) {
+        drive.setIdleMode(enable ? IdleMode.kBrake : IdleMode.kCoast);
+    }
+
+    @Override
+    public void setTurningBrakeMode(boolean enable) {
+        turn.setIdleMode(enable ? IdleMode.kBrake : IdleMode.kCoast);
+    }
+
+    @Override
+    public void requestDriveVelocity(double setpoint) {
+        drive.requestVelocity(setpoint);
+    }
+
+    @Override
+    public void requestTurnPosition(Rotation2d setpoint) {
+        turn.requestPosition(setpoint.getRadians());
+    }
+
+    @Override
+    public void syncEncoderPosition(Rotation2d position) {
+        turn.setPosition(position.getRadians());
+        data.turnPosition = position;
+    }
+
+    @Override
+    public void updateData() {
+        data.drivePosition = Meters.of(drive.getPosition());
+        data.driveVelocity = MetersPerSecond.of(drive.getVelocity());
+        data.driveAppliedVolts = drive.getAppliedVolts();
+        data.driveCurrentAmps = drive.getCurrent();
+        data.driveTempCelcius = drive.getTemperature();
+
+        data.turnPosition = Rotation2d.fromRadians(turn.getPosition());
+        data.absoluteEncoderPosition = Rotation2d.fromRotations(absoluteEncoder.getPosition().getValueAsDouble())
+                .minus(absoluteEncoderOffset);
+        data.turnVelocityRadPerSec = RadiansPerSecond.of(turn.getVelocity());
+        data.turnAppliedVolts = turn.getAppliedVolts();
+        data.turnCurrentAmps = turn.getCurrent();
+        data.turnTempCelcius = turn.getTemperature();
+
+    };
+}
