@@ -105,7 +105,7 @@ public class SwerveModule {
         tunableTurnKI = new LoggedNetworkNumber("/Tuning/Swerve/Module " + name + "/Turn/kI", turnConfig.kI);
         tunableTurnKD = new LoggedNetworkNumber("/Tuning/Swerve/Module " + name + "/Turn/kD", turnConfig.kD);
 
-        tunableOffsetOverride = new LoggedNetworkBoolean("/Tuning/Swerve/Module " + name + "/Offset Override", true);
+        tunableOffsetOverride = new LoggedNetworkBoolean("/Tuning/Swerve/Module " + name + "/Offset Override", false);
         tunableOffset = new LoggedNetworkNumber("/Tuning/Swerve/Module " + name + "/Offset", 0.0);
     }
 

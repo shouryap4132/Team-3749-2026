@@ -98,17 +98,23 @@ public final class SwerveConfig {
                 public static final int FREE_CURRENT = 40;
 
                 public static final Rotation2d[] CANCODER_OFFSET = {
-                                Rotation2d.fromRadians(-9.779+Math.PI),
-                                Rotation2d.fromRadians(-7.417),
-                                Rotation2d.fromRadians(-7.877),
+                                Rotation2d.fromRadians(2.709),
+                                Rotation2d.fromRadians(-1.154),
+                                Rotation2d.fromRadians(-1.508),
                                 Rotation2d.fromRadians(0)
                 };
+                // public static final Rotation2d[] CANCODER_OFFSET = {
+                //                 Rotation2d.fromRadians(0),
+                //                 Rotation2d.fromRadians(0),
+                //                 Rotation2d.fromRadians(0),
+                //                 Rotation2d.fromRadians(0)
+                // };
 
                 public static final boolean[] TURN_INVERTED = {
-                        false,
-                        false,
-                        false,
-                        false
+                                false,
+                                false,
+                                false,
+                                false
                 };
         }
 

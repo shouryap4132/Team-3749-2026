@@ -1,27 +1,22 @@
 package frc.robot.subsystems.swerve.real;
 
-import static edu.wpi.first.units.Units.*;
-
-import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
-import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
-
-import edu.wpi.first.units.Measure.*;
-
-import frc.robot.config.RobotConfig;
-import frc.robot.config.RobotConfig.CAN;
-import frc.robot.utils.MiscUtils;
-import frc.robot.utils.OptixSpark;
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
-import frc.robot.subsystems.swerve.SwerveModuleDataAutoLogged;
+import frc.robot.config.RobotConfig;
+import frc.robot.config.RobotConfig.CAN;
 import frc.robot.config.SwerveConfig;
-import frc.robot.subsystems.swerve.SwerveModuleIO;
 import frc.robot.config.SwerveConfig.Drivetrain;
 import frc.robot.config.SwerveConfig.Motor;
+import frc.robot.subsystems.swerve.SwerveModuleDataAutoLogged;
+import frc.robot.subsystems.swerve.SwerveModuleIO;
+import frc.robot.utils.MiscUtils;
+import frc.robot.utils.OptixSpark;
 
 public class SwerveModuleSpark implements SwerveModuleIO {
     private final SwerveModuleDataAutoLogged data;
@@ -63,8 +58,9 @@ public class SwerveModuleSpark implements SwerveModuleIO {
         absoluteEncoder = new CANcoder(CAN.CANCODER_IDS[index]);
         absoluteEncoderOffset = Motor.CANCODER_OFFSET[index];
 
-        Rotation2d absEncoderAngle = Rotation2d.fromRotations(absoluteEncoder.getPosition().getValueAsDouble());
-        turn.setPosition(absEncoderAngle.minus(absoluteEncoderOffset).getRadians());
+        Rotation2d absEncoderAngle = Rotation2d.fromRotations(absoluteEncoder.getPosition().getValueAsDouble())
+                .minus(absoluteEncoderOffset);
+        turn.setPosition(absEncoderAngle.getRadians());
 
         absoluteEncoder.optimizeBusUtilization();
         absoluteEncoder.getAbsolutePosition()
