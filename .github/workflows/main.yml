@@ -22,10 +22,10 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +777 ./gradlew
       # CHANGE THIS TO DIRECTORY PATH
-      working-directory: ./Template
+      working-directory: ./2026
 
     # Runs a single command using the runners shell
     - name: Compile and run tests on robot code
       run: ./gradlew build
       # CHANGE THIS TO DIRECTORY PATH
-      working-directory: ./Template
+      working-directory: ./2026
