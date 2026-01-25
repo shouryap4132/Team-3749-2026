@@ -2,14 +2,14 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "*" ]
   pull_request:
-    branches: [ main ]
+    branches: [ "*" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: wpilib/roborio-cross-ubuntu:2024-22.04
+    container: wpilib/roborio-cross-ubuntu:2026-22.04-py314
 
     steps:
     - uses: actions/checkout@v4
