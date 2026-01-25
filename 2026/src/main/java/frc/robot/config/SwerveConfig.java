@@ -76,10 +76,10 @@ public final class SwerveConfig {
 
                 public static final double SPEED_SCALE = 1.0;
 
-                public static final LinearVelocity MAX_VELOCITY = MetersPerSecond.of(4.3);
+                public static final LinearVelocity MAX_VELOCITY = MetersPerSecond.of(4.3 * SPEED_SCALE);
                 public static final LinearAcceleration MAX_ACCEL = MetersPerSecondPerSecond.of(3.3);
 
-                public static final AngularVelocity MAX_ANGULAR_VELOCITY = RadiansPerSecond.of(11);
+                public static final AngularVelocity MAX_ANGULAR_VELOCITY = RadiansPerSecond.of(11 * SPEED_SCALE);
                 public static final AngularAcceleration MAX_ANGULAR_ACCEL = RadiansPerSecondPerSecond.of(9.0);
 
                 public static final Constraints TRANSLATE_CONSTRAINTS = new Constraints(
@@ -104,10 +104,10 @@ public final class SwerveConfig {
                                 Rotation2d.fromRadians(0)
                 };
                 // public static final Rotation2d[] CANCODER_OFFSET = {
-                //                 Rotation2d.fromRadians(0),
-                //                 Rotation2d.fromRadians(0),
-                //                 Rotation2d.fromRadians(0),
-                //                 Rotation2d.fromRadians(0)
+                // Rotation2d.fromRadians(0),
+                // Rotation2d.fromRadians(0),
+                // Rotation2d.fromRadians(0),
+                // Rotation2d.fromRadians(0)
                 // };
 
                 public static final boolean[] TURN_INVERTED = {

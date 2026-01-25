@@ -47,7 +47,7 @@ public final class RobotConfig {
     public static final int CONFIG_TIMEOUT_MS = 5000;
 
     public static final int PDH_ID = 40;
-    public static final int PIGEON_ID = 40;
+    public static final int PIGEON_ID = 41;
 
     /** Module Settings: order is FL, FR, BL, BR */
     public static final int[] DRIVE_MOTOR_IDS = { 2, 4, 6, 8 };

@@ -42,14 +42,14 @@ public final class ButtonBindings {
                 Rotation2d.fromDegrees(0))));
         Bind.button(opCtl.a()).onTrue(Commands.print("Operator: A pressed"));
 
-        Bind.button(piCtl.start()).onTrue(Robot.swerve::resetGyro);
+        Bind.button(piCtl.start()).onTrue(Robot.swerve::reset);
         Bind.button(piCtl.back()).onTrue(Robot.swerve::syncEncoderPositions);
     }
 
     public static void oneControllerBindings(CommandXboxController ctl) {
         // Add any pilot-only bindings here.
 
-        Bind.button(ctl.start()).onTrue(Robot.swerve::resetGyro);
+        Bind.button(ctl.start()).onTrue(Robot.swerve::reset);
 
         Bind.button(ctl.b()).switchCommands(() -> {
             Robot.intakeMotor.setVoltage(7.5);

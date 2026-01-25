@@ -90,14 +90,13 @@ public class Swerve extends SubsystemBase {
         PoseEstimator.STATE_STD_DEVS,
         PoseEstimator.VISION_STD_DEVS);
 
-    resetGyro();
-
     // Configure auto PID controllers
     autoXController.reset(PoseEstimator.INITIAL_POSE.getX());
     autoYController.reset(PoseEstimator.INITIAL_POSE.getY());
     autoTurnController.enableContinuousInput(-Math.PI, Math.PI);
     autoTurnController.reset(PoseEstimator.INITIAL_POSE.getRotation().getRadians());
 
+    reset();
   }
 
   public SwerveDrivePoseEstimator getSwerveDrivePoseEstimator() {
@@ -271,7 +270,7 @@ public class Swerve extends SubsystemBase {
     }
   }
 
-  public void resetGyro() {
+  public void reset() {
     gyro.reset();
 
     syncEncoderPositions();
@@ -335,9 +334,9 @@ public class Swerve extends SubsystemBase {
     SwerveModuleState[] desiredStates = Drivetrain.DRIVE_KINEMATICS.toSwerveModuleStates(desiredChassisSpeeds);
     setModuleStates(desiredStates);
 
-    if (getIsStopped() && (Timer.getTimestamp() - lastEncoderSyncTime) > 7.0) {
-      syncEncoderPositions();
-      lastEncoderSyncTime = Timer.getTimestamp();
-    }
+    // if (getIsStopped() && (Timer.getTimestamp() - lastEncoderSyncTime) > 7.0) {
+    // syncEncoderPositions();
+    // lastEncoderSyncTime = Timer.getTimestamp();
+    // }
   }
 }

@@ -52,10 +52,9 @@ public class TeleopCommand extends Command {
       yInput /= magnitude;
     }
 
-    double vx = xInput * SwerveConfig.Control.MAX_VELOCITY.in(MetersPerSecond) * SwerveConfig.Control.SPEED_SCALE;
-    double vy = yInput * SwerveConfig.Control.MAX_VELOCITY.in(MetersPerSecond) * SwerveConfig.Control.SPEED_SCALE;
-    double omega = omegaInput * SwerveConfig.Control.MAX_ANGULAR_VELOCITY.in(RadiansPerSecond)
-        * SwerveConfig.Control.SPEED_SCALE;
+    double vx = xInput * SwerveConfig.Control.MAX_VELOCITY.in(MetersPerSecond);
+    double vy = yInput * SwerveConfig.Control.MAX_VELOCITY.in(MetersPerSecond);
+    double omega = omegaInput * SwerveConfig.Control.MAX_ANGULAR_VELOCITY.in(RadiansPerSecond);
 
     double fieldVx = MiscUtils.isRedAlliance() ? vx : -vx;
     double fieldVy = MiscUtils.isRedAlliance() ? vy : -vy;

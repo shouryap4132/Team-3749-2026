@@ -168,6 +168,9 @@ public class SwerveModule {
         if (!MiscUtils.withinMargin(RobotConfig.Accuracy.DRIVE_ROTATION_TOLERANCE.in(Radians), position.getRadians(),
                 moduleData.turnPosition.getRadians())) {
             voltage = turnPID.calculate(moduleData.turnPosition.getRadians(), position.getRadians());
+            Logger.recordOutput("Swerve/Module " + name + "/Turn Within Margin", false);
+        } else {
+            Logger.recordOutput("Swerve/Module " + name + "/Turn Within Margin", true);
         }
 
         moduleIO.setTurnVoltage(voltage);
@@ -209,8 +212,8 @@ public class SwerveModule {
         boolean override = tunableOffsetOverride != null && tunableOffsetOverride.get();
 
         if (override) {
-            double offsetRad = tunableOffsetOverride != null ? tunableOffset.get() : 0.0;
-            moduleIO.syncEncoderPosition(Rotation2d.fromRadians(offsetRad));
+            // double offsetRad = tunableOffsetOverride != null ? tunableOffset.get() : 0.0;
+            // moduleIO.syncEncoderPosition(Rotation2d.fromRadians(offsetRad));
             return;
         }
 
@@ -238,16 +241,18 @@ public class SwerveModule {
      * Called periodically by the swerve subsystem.
      */
     public void periodic() {
-        drivePID.setPID(tunableDriveKP.get(), tunableDriveKI.get(), tunableDriveKD.get());
-        turnPID.setPID(tunableTurnKP.get(), tunableTurnKI.get(), tunableTurnKD.get());
+        // drivePID.setPID(tunableDriveKP.get(), tunableDriveKI.get(),
+        // tunableDriveKD.get());
+        // turnPID.setPID(tunableTurnKP.get(), tunableTurnKI.get(),
+        // tunableTurnKD.get());
 
-        driveFF.setKs(tunableDriveKS.get());
-        driveFF.setKa(tunableDriveKA.get());
-        driveFF.setKv(tunableDriveKV.get());
+        // driveFF.setKs(tunableDriveKS.get());
+        // driveFF.setKa(tunableDriveKA.get());
+        // driveFF.setKv(tunableDriveKV.get());
 
-        turnFF.setKs(tunableTurnKS.get());
-        turnFF.setKa(tunableTurnKA.get());
-        turnFF.setKv(tunableTurnKV.get());
+        // turnFF.setKs(tunableTurnKS.get());
+        // turnFF.setKa(tunableTurnKA.get());
+        // turnFF.setKv(tunableTurnKV.get());
 
         setDriveSpeed(MetersPerSecond.of(desiredState.speedMetersPerSecond));
         setTurnPosition(desiredState.angle);
