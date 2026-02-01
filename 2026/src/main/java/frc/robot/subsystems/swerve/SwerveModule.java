@@ -4,8 +4,6 @@ import static edu.wpi.first.units.Units.*;
 import edu.wpi.first.units.Measure.*;
 
 import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
-import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -18,6 +16,7 @@ import frc.robot.config.RobotConfig;
 import frc.robot.subsystems.swerve.real.SwerveModuleSpark;
 import frc.robot.subsystems.swerve.sim.SwerveModuleSim;
 import frc.robot.utils.MiscUtils;
+import frc.robot.utils.TunableInput;
 
 /**
  * General class for swerve modules that interacts with the
@@ -46,24 +45,24 @@ public class SwerveModule {
     private final SwerveModuleIO moduleIO;
     private final SwerveModuleDataAutoLogged moduleData = new SwerveModuleDataAutoLogged();
 
-    LoggedNetworkNumber tunableDriveKS;
-    LoggedNetworkNumber tunableDriveKV;
-    LoggedNetworkNumber tunableDriveKA;
+    TunableInput<Double> tunableDriveKS;
+    TunableInput<Double> tunableDriveKV;
+    TunableInput<Double> tunableDriveKA;
 
-    LoggedNetworkNumber tunableDriveKP;
-    LoggedNetworkNumber tunableDriveKI;
-    LoggedNetworkNumber tunableDriveKD;
+    TunableInput<Double> tunableDriveKP;
+    TunableInput<Double> tunableDriveKI;
+    TunableInput<Double> tunableDriveKD;
 
-    LoggedNetworkNumber tunableTurnKS;
-    LoggedNetworkNumber tunableTurnKV;
-    LoggedNetworkNumber tunableTurnKA;
+    TunableInput<Double> tunableTurnKS;
+    TunableInput<Double> tunableTurnKV;
+    TunableInput<Double> tunableTurnKA;
 
-    LoggedNetworkNumber tunableTurnKP;
-    LoggedNetworkNumber tunableTurnKI;
-    LoggedNetworkNumber tunableTurnKD;
+    TunableInput<Double> tunableTurnKP;
+    TunableInput<Double> tunableTurnKI;
+    TunableInput<Double> tunableTurnKD;
 
-    LoggedNetworkBoolean tunableOffsetOverride;
-    LoggedNetworkNumber tunableOffset;
+    TunableInput<Boolean> offsetOverride;
+    TunableInput<Double> tunableOffset;
 
     /**
      * Constructs a new SwerveModule.
@@ -91,22 +90,21 @@ public class SwerveModule {
 
         turnPID.enableContinuousInput(-Math.PI, Math.PI);
 
-        tunableDriveKS = new LoggedNetworkNumber("/Tuning/Swerve/Module " + name + "/Drive/kS", driveConfig.kS);
-        tunableDriveKV = new LoggedNetworkNumber("/Tuning/Swerve/Module " + name + "/Drive/kV", driveConfig.kV);
-        tunableDriveKA = new LoggedNetworkNumber("/Tuning/Swerve/Module " + name + "/Drive/kA", driveConfig.kA);
-        tunableDriveKP = new LoggedNetworkNumber("/Tuning/Swerve/Module " + name + "/Drive/kP", driveConfig.kP);
-        tunableDriveKI = new LoggedNetworkNumber("/Tuning/Swerve/Module " + name + "/Drive/kI", driveConfig.kI);
-        tunableDriveKD = new LoggedNetworkNumber("/Tuning/Swerve/Module " + name + "/Drive/kD", driveConfig.kD);
+        tunableDriveKS = TunableInput.number("Swerve/Module " + name + "/Drive/kS", driveConfig.kS);
+        tunableDriveKV = TunableInput.number("Swerve/Module " + name + "/Drive/kV", driveConfig.kV);
+        tunableDriveKA = TunableInput.number("Swerve/Module " + name + "/Drive/kA", driveConfig.kA);
+        tunableDriveKP = TunableInput.number("Swerve/Module " + name + "/Drive/kP", driveConfig.kP);
+        tunableDriveKI = TunableInput.number("Swerve/Module " + name + "/Drive/kI", driveConfig.kI);
+        tunableDriveKD = TunableInput.number("Swerve/Module " + name + "/Drive/kD", driveConfig.kD);
 
-        tunableTurnKS = new LoggedNetworkNumber("/Tuning/Swerve/Module " + name + "/Turn/kS", turnConfig.kS);
-        tunableTurnKV = new LoggedNetworkNumber("/Tuning/Swerve/Module " + name + "/Turn/kV", turnConfig.kV);
-        tunableTurnKA = new LoggedNetworkNumber("/Tuning/Swerve/Module " + name + "/Turn/kA", turnConfig.kA);
-        tunableTurnKP = new LoggedNetworkNumber("/Tuning/Swerve/Module " + name + "/Turn/kP", turnConfig.kP);
-        tunableTurnKI = new LoggedNetworkNumber("/Tuning/Swerve/Module " + name + "/Turn/kI", turnConfig.kI);
-        tunableTurnKD = new LoggedNetworkNumber("/Tuning/Swerve/Module " + name + "/Turn/kD", turnConfig.kD);
+        tunableTurnKS = TunableInput.number("Swerve/Module " + name + "/Turn/kS", turnConfig.kS);
+        tunableTurnKV = TunableInput.number("Swerve/Module " + name + "/Turn/kV", turnConfig.kV);
+        tunableTurnKA = TunableInput.number("Swerve/Module " + name + "/Turn/kA", turnConfig.kA);
+        tunableTurnKP = TunableInput.number("Swerve/Module " + name + "/Turn/kP", turnConfig.kP);
+        tunableTurnKI = TunableInput.number("Swerve/Module " + name + "/Turn/kI", turnConfig.kI);
+        tunableTurnKD = TunableInput.number("Swerve/Module " + name + "/Turn/kD", turnConfig.kD);
 
-        tunableOffsetOverride = new LoggedNetworkBoolean("/Tuning/Swerve/Module " + name + "/Offset Override", false);
-        tunableOffset = new LoggedNetworkNumber("/Tuning/Swerve/Module " + name + "/Offset", 0.0);
+        offsetOverride = TunableInput.bool("Swerve/Module " + name + "/Offset Override", false);
     }
 
     /**
@@ -140,21 +138,19 @@ public class SwerveModule {
     /**
      * Sets the drive motor speed with feedforward and PID control.
      * 
-     * @param speed The target velocity in m/s
+     * @param target The target velocity in m/s
      */
-    public void setDriveSpeed(LinearVelocity speed) {
-        if (MiscUtils.isStopped(speed)) {
+    public void runDriveSpeed(LinearVelocity target) {
+        if (MiscUtils.isStopped(target)) {
             moduleIO.setDriveVoltage(0.0);
             return;
         }
 
         double feedforward = driveFF.calculateWithVelocities(moduleData.driveVelocity.in(MetersPerSecond),
-                speed.in(MetersPerSecond));
-        double PID = drivePID.calculate(moduleData.driveVelocity.in(MetersPerSecond), speed.in(MetersPerSecond));
-        moduleIO.setDriveVoltage(PID + feedforward);
-        Logger.recordOutput("Swerve/Module " + name + "/Drive FF Volts", feedforward);
-        Logger.recordOutput("Swerve/Module " + name + "/Drive PID Volts", PID);
-        Logger.recordOutput("Swerve/Module " + name + "/Drive Desired Volts", PID + feedforward);
+                target.in(MetersPerSecond));
+        double pid = drivePID.calculate(moduleData.driveVelocity.in(MetersPerSecond), target.in(MetersPerSecond));
+        moduleIO.setDriveVoltage(pid + feedforward);
+        Logger.recordOutput("Swerve/Module " + name + "/Drive Desired Volts", pid + feedforward);
     }
 
     /**
@@ -162,19 +158,18 @@ public class SwerveModule {
      * 
      * @param position The target angle setpoint
      */
-    public void setTurnPosition(Rotation2d position) {
-        double voltage = 0.0;
+    public void runTurnPosition(Rotation2d position) {
+        boolean withinMargin = MiscUtils.withinMargin(RobotConfig.Accuracy.DRIVE_ROTATION_TOLERANCE.in(Radians),
+                position.getRadians(),
+                moduleData.turnPosition.getRadians());
 
-        if (!MiscUtils.withinMargin(RobotConfig.Accuracy.DRIVE_ROTATION_TOLERANCE.in(Radians), position.getRadians(),
-                moduleData.turnPosition.getRadians())) {
-            voltage = turnPID.calculate(moduleData.turnPosition.getRadians(), position.getRadians());
-            Logger.recordOutput("Swerve/Module " + name + "/Turn Within Margin", false);
-        } else {
-            Logger.recordOutput("Swerve/Module " + name + "/Turn Within Margin", true);
-        }
+        double voltage = withinMargin ? 0.0
+                : turnPID.calculate(moduleData.turnPosition.getRadians(), position.getRadians())
+                        + turnFF.calculate(moduleData.turnVelocityRadPerSec.in(RadiansPerSecond));
 
         moduleIO.setTurnVoltage(voltage);
         Logger.recordOutput("Swerve/Module " + name + "/Turn Desired Volts", voltage);
+        Logger.recordOutput("Swerve/Module " + name + "/Turn Within Margin", withinMargin);
     }
 
     /**
@@ -209,11 +204,9 @@ public class SwerveModule {
      * Syncs the relative encoder with the absolute encoder.
      */
     public void syncEncoderPosition() {
-        boolean override = tunableOffsetOverride != null && tunableOffsetOverride.get();
+        boolean override = offsetOverride != null && offsetOverride.get();
 
         if (override) {
-            // double offsetRad = tunableOffsetOverride != null ? tunableOffset.get() : 0.0;
-            // moduleIO.syncEncoderPosition(Rotation2d.fromRadians(offsetRad));
             return;
         }
 
@@ -241,21 +234,21 @@ public class SwerveModule {
      * Called periodically by the swerve subsystem.
      */
     public void periodic() {
-        // drivePID.setPID(tunableDriveKP.get(), tunableDriveKI.get(),
-        // tunableDriveKD.get());
-        // turnPID.setPID(tunableTurnKP.get(), tunableTurnKI.get(),
-        // tunableTurnKD.get());
+        drivePID.setPID(tunableDriveKP.get(), tunableDriveKI.get(),
+                tunableDriveKD.get());
+        turnPID.setPID(tunableTurnKP.get(), tunableTurnKI.get(),
+                tunableTurnKD.get());
 
-        // driveFF.setKs(tunableDriveKS.get());
-        // driveFF.setKa(tunableDriveKA.get());
-        // driveFF.setKv(tunableDriveKV.get());
+        driveFF.setKs(tunableDriveKS.get());
+        driveFF.setKa(tunableDriveKA.get());
+        driveFF.setKv(tunableDriveKV.get());
 
-        // turnFF.setKs(tunableTurnKS.get());
-        // turnFF.setKa(tunableTurnKA.get());
-        // turnFF.setKv(tunableTurnKV.get());
+        turnFF.setKs(tunableTurnKS.get());
+        turnFF.setKa(tunableTurnKA.get());
+        turnFF.setKv(tunableTurnKV.get());
 
-        setDriveSpeed(MetersPerSecond.of(desiredState.speedMetersPerSecond));
-        setTurnPosition(desiredState.angle);
+        runDriveSpeed(MetersPerSecond.of(desiredState.speedMetersPerSecond));
+        runTurnPosition(desiredState.angle);
         updateInputs();
     }
 }

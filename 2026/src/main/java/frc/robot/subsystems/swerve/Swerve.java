@@ -273,8 +273,6 @@ public class Swerve extends SubsystemBase {
   public void reset() {
     gyro.reset();
 
-    syncEncoderPositions();
-
     Rotation2d targetRotation = MiscUtils.isRedAlliance()
         ? Rotation2d.fromDegrees(180)
         : new Rotation2d();
@@ -283,6 +281,8 @@ public class Swerve extends SubsystemBase {
         new Rotation2d(),
         getModulePositions(),
         new Pose2d(swerveDrivePoseEstimator.getEstimatedPosition().getTranslation(), targetRotation));
+
+    syncEncoderPositions();
     resetAutoControllers(swerveDrivePoseEstimator.getEstimatedPosition());
   }
 
