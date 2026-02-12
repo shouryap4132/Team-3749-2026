@@ -441,6 +441,7 @@ public final class OptixSpark {
      * parameters and persisting them to flash.
      */
     public void apply(SparkBaseConfig config) {
+        cfg = config; // Store the applied config for reference
         var ret = motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         // If the return code is OK, no error occurred

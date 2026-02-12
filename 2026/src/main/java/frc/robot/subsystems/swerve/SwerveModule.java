@@ -1,7 +1,6 @@
 package frc.robot.subsystems.swerve;
 
 import static edu.wpi.first.units.Units.*;
-import edu.wpi.first.units.Measure.*;
 
 import org.littletonrobotics.junction.Logger;
 
@@ -159,7 +158,7 @@ public class SwerveModule {
      * @param position The target angle setpoint
      */
     public void runTurnPosition(Rotation2d position) {
-        boolean withinMargin = MiscUtils.withinMargin(RobotConfig.Accuracy.DRIVE_ROTATION_TOLERANCE.in(Radians),
+        boolean withinMargin = MiscUtils.withinMargin(RobotConfig.Accuracy.Swerve.ROTATION_TOLERANCE.in(Radians),
                 position.getRadians(),
                 moduleData.turnPosition.getRadians());
 

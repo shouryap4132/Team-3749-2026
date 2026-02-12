@@ -1,5 +1,10 @@
 package frc.robot.config;
 
+import org.littletonrobotics.junction.Logger;
+
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.XboxController.Axis;
@@ -7,20 +12,14 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Robot;
+import frc.robot.commands.swerve.OnTheFly;
+import frc.robot.commands.swerve.TeleopCommand;
+import frc.robot.config.ClimbConfig.ClimbStates;
 import frc.robot.config.RobotConfig.ControlMode;
 import frc.robot.config.RobotConfig.Input;
 import frc.robot.config.RobotConfig.RobotType;
 import frc.robot.utils.MiscUtils;
-import frc.robot.utils.OptixSpark;
-import frc.robot.Robot;
-import frc.robot.commands.swerve.OnTheFly;
-import frc.robot.commands.swerve.TeleopCommand;
-
-import org.littletonrobotics.junction.Logger;
-
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 
 public final class ButtonBindings {
     private static final Trigger hasDualControllers = new Trigger(() -> DriverStation.getJoystickType(1) > 1);
@@ -44,19 +43,19 @@ public final class ButtonBindings {
 
         Bind.button(piCtl.start()).onTrue(Robot.swerve::reset);
         Bind.button(piCtl.back()).onTrue(Robot.swerve::syncEncoderPositions);
+        Bind.button(pilot.x()).onTrue(() -> Robot.climbLeft.setState(ClimbStates.CLIMB));
+        Bind.button(pilot.y()).onTrue(() -> Robot.climbLeft.setState(ClimbStates.MIDDLE));
+        Bind.button(pilot.a()).onTrue(() -> Robot.climbLeft.setState(ClimbStates.STOW));
+
+        
     }
 
     public static void oneControllerBindings(CommandXboxController ctl) {
         // Add any pilot-only bindings here.
 
         Bind.button(ctl.start()).onTrue(Robot.swerve::reset);
-
-        Bind.button(ctl.b()).switchCommands(() -> {
-            Robot.intakeMotor.setVoltage(7.5);
-        }, () -> {
-            Robot.intakeMotor.setVoltage(0);
-        });
     }
+    
 
     public static void simBindings() {
         twoControllerBindings(pilot, operator);

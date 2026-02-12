@@ -11,17 +11,25 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.swerve.gyro.GyroDataAutoLogged;
 import frc.robot.subsystems.swerve.gyro.GyroIO;
 import frc.robot.subsystems.swerve.gyro.GyroSim;
 import frc.robot.subsystems.swerve.gyro.PigeonGyro;
+import frc.robot.config.HoodedShooterConfig.HoodedShooterSpecs;
+import frc.robot.config.HoodedShooterConfig.HoodedShooterStates;
+import frc.robot.config.MiscConfig.FieldSpecs;
 import frc.robot.config.RobotConfig.RobotType;
+import frc.robot.Robot;
+import frc.robot.commands.HoodedShooter.AutoAim;
 import frc.robot.config.SwerveConfig;
 import frc.robot.utils.MiscUtils;
 import frc.robot.config.SwerveConfig.Control;
@@ -47,7 +55,11 @@ public class Swerve extends SubsystemBase {
 
   private final SwerveDrivePoseEstimator swerveDrivePoseEstimator;
   private boolean isOTF = false;
+  private boolean isAutoAim = false;
+  private boolean isPassing = false;
   private double lastEncoderSyncTime = -1.0;
+
+  private boolean utilizeVision = true;
 
   private final ProfiledPIDController autoXController = new ProfiledPIDController(
       SwerveConfig.Control.TRANSLATE_PID[0], SwerveConfig.Control.TRANSLATE_PID[1],
@@ -144,6 +156,14 @@ public class Swerve extends SubsystemBase {
     return isOTF;
   }
 
+  public boolean getIsAutoAim() {
+    return isAutoAim;
+  }
+
+  public boolean getIsPassing() {
+    return isPassing;
+  }
+
   public boolean getIsStopped() {
     var chassisSpeeds = getChassisSpeeds();
 
@@ -175,6 +195,10 @@ public class Swerve extends SubsystemBase {
     }
   }
 
+  public void setUtilizeVision(boolean utilize){
+    utilizeVision = utilize;
+  }
+
   public void setOdometry(Pose2d pose) {
     Rotation2d gyroHeading = Rotation2d.fromRadians(gyroData.orientation.getZ());
     swerveDrivePoseEstimator.resetPosition(
@@ -186,6 +210,14 @@ public class Swerve extends SubsystemBase {
 
   public void setIsOTF(boolean otf) {
     isOTF = otf;
+  }
+
+  public void setIsAutoAim(boolean autoAim) {
+    isAutoAim = autoAim;
+  }
+
+  public void setIsPassing(boolean passing) {
+    isPassing = passing;
   }
 
   public void driveFieldRelative(ChassisSpeeds chassisSpeeds) {
@@ -201,9 +233,76 @@ public class Swerve extends SubsystemBase {
     double vx = sample.vx + autoXController.calculate(pose.getX());
     double vy = sample.vy + autoYController.calculate(pose.getY());
 
-    double targetAngle = MiscUtils.isRedAlliance()
+    double targetAngle;
+
+    if(Robot.hoodedShooter.getState() == HoodedShooterStates.AUTOAIM) {
+        isAutoAim = true;
+        isPassing = false;
+    }
+
+    else if(Robot.hoodedShooter.getState() == HoodedShooterStates.PASS) {
+        isPassing = true;
+        isAutoAim = false;
+    }
+
+    else {
+        isAutoAim = false;
+        isPassing = false;
+    }
+
+    if (isAutoAim) {
+
+        final Translation2d hubPose;
+
+        if (DriverStation.getAlliance().get() == Alliance.Blue) {
+            hubPose = FieldSpecs.HUB_POSITION_BLUE_ALLIANCE;
+        }
+        else {
+            hubPose = FieldSpecs.HUB_POSITION_RED_ALLIANCE;
+        }
+
+        Translation2d hypotenus = hubPose.minus(this.getPose().getTranslation());
+
+        targetAngle = new Rotation2d(Math.atan2(hypotenus.getY(), hypotenus.getX())).getRadians();
+
+    }
+
+    else if (isPassing) {
+        final Translation2d targetPose;
+
+        if (DriverStation.getAlliance().get() == Alliance.Blue) {
+            if (Robot.swerve.getPose().getTranslation().getY() < FieldSpecs.FIELD_CENTER_Y) {
+                targetPose = FieldSpecs.LOWER_BLUE_ALLIANCE_CENTER;
+            } 
+            
+            else {
+                targetPose = FieldSpecs.UPPER_BLUE_ALLIANCE_CENTER;
+            }
+        }
+
+        else {
+            if (Robot.swerve.getPose().getTranslation().getY() < FieldSpecs.FIELD_CENTER_Y) {
+                targetPose = FieldSpecs.LOWER_RED_ALLIANCE_CENTER;
+            } 
+            
+            else {
+                targetPose = FieldSpecs.UPPER_RED_ALLIANCE_CENTER;
+            }
+        }
+
+        Translation2d hypotenus = targetPose.minus(this.getPose().getTranslation());
+
+        targetAngle = new Rotation2d(Math.atan2(hypotenus.getY(), hypotenus.getX())).getRadians();
+    }
+    
+    else {
+    targetAngle = MiscUtils.isRedAlliance()
         ? sample.heading + Math.PI
         : sample.heading;
+    }
+
+    Logger.recordOutput("TargetAngle", targetAngle);
+    
     autoTurnController.setGoal(targetAngle);
     double omega = sample.omega + autoTurnController.calculate(pose.getRotation().getRadians());
 
@@ -262,6 +361,12 @@ public class Swerve extends SubsystemBase {
     swerveDrivePoseEstimator.update(
         Rotation2d.fromRadians(gyroData.orientation.getZ()),
         getModulePositions());
+  }
+
+  public void visionUpdateOdometry(Pose2d pose, double timestamp) {
+    if (utilizeVision) {
+      swerveDrivePoseEstimator.addVisionMeasurement(pose, timestamp);
+    }
   }
 
   public void syncEncoderPositions() {

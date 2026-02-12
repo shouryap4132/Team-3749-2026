@@ -2,6 +2,7 @@ package frc.robot.config;
 
 import static edu.wpi.first.units.Units.*;
 import edu.wpi.first.units.measure.*;
+import frc.robot.subsystems.swerve.Swerve;
 
 /**
  * Centralized configuration for robot-wide settings that are not tied to a
@@ -57,7 +58,13 @@ public final class RobotConfig {
     /** Order: Left, Right */
     public static final int[] ELEVATOR_MOTOR_IDS = { 20, 21 };
     public static final int ARM_MOTOR_ID = 22;
-
+    public static final int CLIMB_LEFT_ID = 0;
+    public static final int CLIMB_RIGHT_ID = 0;
+    public static final int INTAKE_ARM_MOTOR_ID = 24;
+    public static final int[] INTAKE_ROLLER_MOTOR_IDS = { 25, 26 };
+    public static final int[] HOPPER_ROLLER_MOTOR_IDS = { 27, 28 };
+    public static final int[] SHOOTER_ROLLER_MOTOR_IDS = { 0, 0 };
+    public static final int HOODED_SHOOTER_MOTOR_ID = 0;
   }
 
   /** Configuration for driver/operator controllers. */
@@ -83,10 +90,31 @@ public final class RobotConfig {
     // default 3 mm/s tolerance for any subsystem movement
     public static final LinearVelocity DEFAULT_MOVEMENT_TOLERANCE = InchesPerSecond.of(0.1);
 
-    public static final Distance DRIVE_TRANSLATE_TOLERANCE = Meters.of(0.01);
-    public static final Angle DRIVE_ROTATION_TOLERANCE = Degrees.of(2);
+    public static final class Swerve {
+      public static final Distance TRANSLATE_TOLERANCE = Inches.of(1.5);
+      public static final Angle ROTATION_TOLERANCE = Degrees.of(2);
+    }
 
-    // 3 cm tolerance for elevator positioning
-    public static final Distance ELEVATOR_TOLERANCE = Meters.of(0.025);
+    public static final class Shooter {
+      public static final Angle HOOD_ANGLE_TOLERANCE = Degrees.of(0.5);
+      public static final AngularVelocity HOOD_VELOCITY_TOLERANCE = DegreesPerSecond.of(0.1);
+      public static final AngularVelocity ROLLER_VELOCITY_TOLERANCE = RadiansPerSecond.of(0.1);
+    }
+
+    public static final class Intake {
+      public static final Angle ARM_ANGLE_TOLERANCE = Degrees.of(0.2);
+      public static final AngularVelocity ARM_VELOCITY_TOLERANCE = DegreesPerSecond.of(0.5);
+      public static final AngularVelocity ROLLER_VELOCITY_TOLERANCE = RadiansPerSecond.of(0.1);
+    }
+
+    public static final class Climb {
+      public static final Distance CLIMB_HEIGHT_TOLERANCE = Inches.of(0.5);
+      public static final LinearVelocity CLIMB_VELOCITY_TOLERANCE = InchesPerSecond.of(0.1);
+      
+    }
+
+    public static final class Hopper {
+      public static final AngularVelocity ROLLER_VELOCITY_TOLERANCE = RadiansPerSecond.of(0.1);
+    }
   }
 }

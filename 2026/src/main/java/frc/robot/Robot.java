@@ -17,23 +17,29 @@ import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.auto.AutoUtils;
 import frc.robot.config.RobotConfig;
 import frc.robot.config.RobotConfig.RobotType;
-import frc.robot.subsystems.ExampleElevator.ExampleElevator;
+import frc.robot.config.RollerConfig.RollerImplementations;
+import frc.robot.subsystems.Climb.Climb;
+import frc.robot.subsystems.IntakeArm.IntakeArm;
+import frc.robot.subsystems.ShooterHood.ShooterHood;
+import frc.robot.subsystems.roller.Roller;
 import frc.robot.subsystems.swerve.Swerve;
+import frc.robot.subsystems.vision.Vision;
 import frc.robot.config.ButtonBindings;
 import frc.robot.utils.MiscUtils;
-import frc.robot.utils.OptixSpark;
 
 public class Robot extends LoggedRobot {
   public static Swerve swerve;
-  public static ExampleElevator exampleElevator;
-
-  public static OptixSpark intakeMotor;
+  public static ShooterHood hoodedShooter;
+  public static IntakeArm intakeArm;
+  public static Roller intakeRoller;
+  public static Roller hopperRollers;
+  public static Roller shooterRoller;
+  public static Climb climbLeft;
+  public static Vision vision;
 
   public Robot() {
     Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
@@ -50,7 +56,7 @@ public class Robot extends LoggedRobot {
 
     RobotType robotType = MiscUtils.getRobotType();
     Logger.recordOutput("Robot Type", robotType);
-    Logger.recordOutput("Replay Mode", MiscUtils.isReplay());
+    Logger.recordOutput("Is Replay Mode?", MiscUtils.isReplay());
 
     // Set up data receivers & replay source
     switch (robotType) {
@@ -77,24 +83,23 @@ public class Robot extends LoggedRobot {
 
     Logger.registerURCL(URCL.startExternal());
     Logger.start();
-
-    subsystemInit();
-
-    intakeMotor = OptixSpark.ofSparkMax(36);
-    intakeMotor.setInverted(true);
-    intakeMotor.apply();
-  }
-
-  public void subsystemInit() {
-    swerve = new Swerve();
-    exampleElevator= new ExampleElevator();
   }
 
   @Override
   public void robotInit() {
+    swerve = new Swerve();
+    intakeArm = new IntakeArm();
+    intakeRoller = new Roller(RollerImplementations.INTAKE);
+    hopperRollers = new Roller(RollerImplementations.HOPPER);
+    shooterRoller = new Roller(RollerImplementations.SHOOTER);
+    climbLeft = new Climb();
+    vision = new Vision();
+
     ButtonBindings.apply();
-    AutoUtils.initAutoUtils();
     DriverStation.silenceJoystickConnectionWarning(true);
+
+    AutoUtils.initAutoUtils();
+    AutoUtils.setupAutoTrigger();
   }
 
   @Override
@@ -119,8 +124,8 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void autonomousInit() {
-    AutoUtils.runSelectedCommand();
-    // Dont use ^ anymore. See AutoUtils.setupAutoTrigger()
+    // AutoUtils.runSelectedCommand();
+    // ^ not used anymore. See AutoUtils.setupAutoTrigger(), in robotInit()
 
     // In here should be just any special setup needed before auto starts
     // For example, if we do piece detection, maybe we would want to select a

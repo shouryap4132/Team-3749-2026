@@ -1,7 +1,6 @@
 package frc.robot.commands.auto;
 
 import static edu.wpi.first.units.Units.*;
-import edu.wpi.first.units.measure.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -115,8 +114,8 @@ public class AutoUtils {
                 System.out.println("[AutoUtils]: No command found for event marker: " + marker);
             }
 
-            traj.atPose(marker, Accuracy.DRIVE_TRANSLATE_TOLERANCE.in(Meters),
-                    Accuracy.DRIVE_ROTATION_TOLERANCE.in(Radians))
+            traj.atPose(marker, Accuracy.Swerve.TRANSLATE_TOLERANCE.in(Meters),
+                    Accuracy.Swerve.ROTATION_TOLERANCE.in(Radians))
                     .onTrue(eventMarkerCommands.get(marker).get());
         }
     }
@@ -231,8 +230,8 @@ public class AutoUtils {
             AutoTrajectory traj = routine.trajectory(trajectoryName);
 
             for (Map.Entry<String, Supplier<Command>> entry : poseMarkers.entrySet()) {
-                traj.atPose(entry.getKey(), Accuracy.DRIVE_TRANSLATE_TOLERANCE.in(Meters),
-                        Accuracy.DRIVE_ROTATION_TOLERANCE.in(Radians))
+                traj.atPose(entry.getKey(), Accuracy.Swerve.TRANSLATE_TOLERANCE.in(Meters),
+                        Accuracy.Swerve.ROTATION_TOLERANCE.in(Radians))
                         .onTrue(entry.getValue().get());
             }
 
