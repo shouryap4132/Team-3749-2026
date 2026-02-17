@@ -16,6 +16,8 @@ import choreo.util.ChoreoAllianceFlipUtil;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -221,6 +223,36 @@ public class AutoUtils {
             this.holdFinalPose = hold;
             return this;
         }
+
+        public static Command addScoreL3(AutoTrajectory trajectory) {
+        Pose2d endingPose2d = getFinalPose2d(trajectory);
+        // unflip the alliance so that atPose can flip it; it's a quirk of referencing
+        // the trajectory
+        if (DriverStation.getAlliance().get() == Alliance.Red) {
+            endingPose2d = ChoreoAllianceFlipUtil.flip(endingPose2d);
+        }
+        Command scoreL3 = new ScoreL234(ElevatorStates.L3);
+
+        trajectory.atPose(endingPose2d, 1, 1.57).onTrue(scoreL3);
+        trajectory.done().and(() -> scoreL3.isScheduled())
+                .onTrue(
+                        Commands.run(() -> {
+                            Robot.swerve.driveToSample(null);(trajectory.getFinalPose().get(), new Pose2d());
+                        }, Robot.swerve));
+        return scoreL3;
+
+    }
+
+     public static Pose2d getFinalPose2d(AutoTrajectory trajectory) {
+        // if (flippedChooser.getSelected()) {
+        // System.out.println("Flipped Pose:" +
+        // getFlippedPose(trajectory.getFinalPose().get()));
+
+        // return getFlippedPose(trajectory.getFinalPose().get());
+        // } else {
+        return trajectory.getFinalPose().isPresent() ? trajectory.getFinalPose().get() : new Pose2d();
+        // }
+    }
 
         /**
          * Builds and returns the trajectory command.
