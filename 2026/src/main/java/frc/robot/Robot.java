@@ -92,7 +92,7 @@ public class Robot extends LoggedRobot {
   @Override
   public void robotInit() {
 
-    highOdometry = new HighOdometry();
+    highOdometry = new HighOdometry(); // has to be first
     led = new LED();
     swerve = new Swerve();
     intakeArm = new IntakeArm();
@@ -112,7 +112,8 @@ public class Robot extends LoggedRobot {
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
-    highOdometry.updateData();
+    Robot.highOdometry.log();
+
   }
 
   @Override

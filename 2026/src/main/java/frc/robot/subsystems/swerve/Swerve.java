@@ -36,6 +36,8 @@ import frc.robot.config.SwerveConfig.Control;
 import frc.robot.config.SwerveConfig.Drivetrain;
 import frc.robot.config.SwerveConfig.PoseEstimator;
 
+import frc.robot.HighOdometry;
+
 /**
  * Subsystem class for swerve drive, used to manage four swerve
  * modules and set their states. Also includes a pose estimator,
@@ -45,11 +47,14 @@ import frc.robot.config.SwerveConfig.PoseEstimator;
  * from blue alliance wall, counter-clockwise positive.
  */
 public class Swerve extends SubsystemBase {
+
+
+  
   private final SwerveModule[] modules = new SwerveModule[4];
   private final SwerveModulePosition[] modulePositionsBuffer = new SwerveModulePosition[4];
 
-  private final GyroIO gyro;
-  private final GyroDataAutoLogged gyroData = new GyroDataAutoLogged();
+  // private final GyroIO gyro;
+  // private final GyroDataAutoLogged gyroData = new GyroDataAutoLogged();
 
   private ChassisSpeeds desiredChassisSpeeds = new ChassisSpeeds();
 
@@ -57,7 +62,6 @@ public class Swerve extends SubsystemBase {
   private boolean isOTF = false;
   private boolean isAutoAim = false;
   private boolean isPassing = false;
-  private double lastEncoderSyncTime = -1.0;
 
   private boolean utilizeVision = true;
 
@@ -80,12 +84,12 @@ public class Swerve extends SubsystemBase {
     switch (robotType) {
       case SIM:
         moduleType = SwerveModuleType.SIM;
-        gyro = new GyroSim(gyroData);
+        // gyro = new GyroSim(gyroData);
         break;
       case REAL:
       default:
         moduleType = SwerveModuleType.SPARK;
-        gyro = new PigeonGyro(gyroData);
+        // gyro = new PigeonGyro(gyroData);
         break;
     }
 
@@ -200,7 +204,7 @@ public class Swerve extends SubsystemBase {
   }
 
   public void setOdometry(Pose2d pose) {
-    Rotation2d gyroHeading = Rotation2d.fromRadians(gyroData.orientation.getZ());
+    Rotation2d gyroHeading = Robot.highOdometry.getHeading();
     swerveDrivePoseEstimator.resetPosition(
         gyroHeading,
         getModulePositions(),
@@ -359,7 +363,7 @@ public class Swerve extends SubsystemBase {
 
   public void updateOdometry() {
     swerveDrivePoseEstimator.update(
-        Rotation2d.fromRadians(gyroData.orientation.getZ()),
+        Robot.highOdometry.getHeading(),
         getModulePositions());
   }
 
@@ -376,8 +380,7 @@ public class Swerve extends SubsystemBase {
   }
 
   public void reset() {
-    gyro.reset();
-
+    Robot.highOdometry.resetGyro();
     Rotation2d targetRotation = MiscUtils.isRedAlliance()
         ? Rotation2d.fromDegrees(180)
         : new Rotation2d();
@@ -411,8 +414,6 @@ public class Swerve extends SubsystemBase {
       absoluteEncoderStates[i] = new SwerveModuleState(0, modules[i].getModuleData().absoluteEncoderPosition);
     }
 
-    Logger.processInputs("Swerve/GyroData", gyroData);
-
     Logger.recordOutput("Swerve/RealStates", moduleRealStates);
     Logger.recordOutput("Swerve/DesiredStates", moduleDesiredStates);
     Logger.recordOutput("Swerve/AbsoluteEncoderStates", absoluteEncoderStates);
@@ -428,20 +429,15 @@ public class Swerve extends SubsystemBase {
 
   @Override
   public void periodic() {
-    for (SwerveModule module : modules) {
-      module.periodic();
-    }
-    gyro.updateData();
-    updateOdometry();
+      for (SwerveModule module : modules) {
+          module.periodic();
+      }
 
-    logData();
+      updateOdometry();   // uses HighOdometry heading
+      logData();
 
-    SwerveModuleState[] desiredStates = Drivetrain.DRIVE_KINEMATICS.toSwerveModuleStates(desiredChassisSpeeds);
-    setModuleStates(desiredStates);
-
-    // if (getIsStopped() && (Timer.getTimestamp() - lastEncoderSyncTime) > 7.0) {
-    // syncEncoderPositions();
-    // lastEncoderSyncTime = Timer.getTimestamp();
-    // }
+      SwerveModuleState[] desiredStates =
+          Drivetrain.DRIVE_KINEMATICS.toSwerveModuleStates(desiredChassisSpeeds);
+      setModuleStates(desiredStates);
   }
 }
