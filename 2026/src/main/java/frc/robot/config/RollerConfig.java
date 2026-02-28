@@ -6,6 +6,8 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.units.measure.AngularVelocity;
 import frc.robot.utils.MiscUtils.ControlConfigBuilder;
+import edu.wpi.first.units.Units;
+
 
 public class RollerConfig {
 
@@ -110,6 +112,9 @@ public class RollerConfig {
                 .kS(0.205, 0)
                 .kV(0.0594, 12.0 / 201.575)
                 .kA(0);
+                
+        public static final AngularVelocity maxVelocity =
+            Units.DegreesPerSecond.of(0.1);        
 
         public ShooterRollerConfig() {
             super(RobotConfig.CAN.SHOOTER_ROLLER_MOTOR_IDS, 0.04, 3, 0.0, false, CONTROL_CONFIG, IdleMode.kCoast,

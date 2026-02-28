@@ -1,14 +1,17 @@
 package frc.robot.subsystems.roller;
 
-import static edu.wpi.first.units.Units.*;
-import edu.wpi.first.units.measure.*;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.config.RollerConfig;
 import frc.robot.config.RobotConfig.RobotType;
+import frc.robot.config.RobotConfig.Accuracy.Shooter;
 import frc.robot.config.RollerConfig.RollerImplementations;
 import frc.robot.config.RollerConfig.RollerStates;
 import frc.robot.subsystems.roller.RollerIO.RollerData;
@@ -94,6 +97,9 @@ public class Roller extends SubsystemBase {
             return RadiansPerSecond.of(0);
         }
         return RadiansPerSecond.of(data.rollerVelocityRadPerSec.get(0));
+    }
+    public AngularVelocity getMaxVelocity(){
+        return RadiansPerSecond.of(RollerConfig.ShooterRollerConfig.maxVelocity.in(Units.RadiansPerSecond));
     }
 
     // Setters ///////////////////////////////////////////////////////////

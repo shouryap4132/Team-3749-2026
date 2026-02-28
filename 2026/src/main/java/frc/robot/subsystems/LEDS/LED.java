@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -94,9 +95,10 @@ public class LED extends SubsystemBase {
     private static final int ROLLER_LENGTH = 20;
 
     private void updateRollerVelocityBar() {
-        double velocity = Robot.shooterRoller.getVelocity();
-        double maxVelocity = Robot.shooterRoller.getMaxVelocity();
-
+        double velocity = Robot.shooterRoller.getVelocity().in(Units.DegreesPerSecond);
+        double maxVelocity =
+            Robot.shooterRoller.getMaxVelocity()
+        .in(Units.RadiansPerSecond);
         double percent = MathUtil.clamp(velocity / maxVelocity, 0.0, 1.0);
         int litLEDs = (int) Math.round(percent * ROLLER_LENGTH);
 
