@@ -31,8 +31,10 @@ import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.config.ButtonBindings;
 import frc.robot.utils.MiscUtils;
+import frc.robot.HighOdometry;
 
 public class Robot extends LoggedRobot {
+  public static HighOdometry highOdometry;
   public static LED led;
   public static Swerve swerve;
   public static ShooterHood hoodedShooter;
@@ -89,8 +91,9 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void robotInit() {
-    led = new LED();
 
+    highOdometry = new HighOdometry();
+    led = new LED();
     swerve = new Swerve();
     intakeArm = new IntakeArm();
     intakeRoller = new Roller(RollerImplementations.INTAKE);
@@ -109,6 +112,7 @@ public class Robot extends LoggedRobot {
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
+    highOdometry.updateData();
   }
 
   @Override
@@ -127,14 +131,14 @@ public class Robot extends LoggedRobot {
   }
 
   @Override
-  public void autonomousInit() {
+  public void autonomousInit() {}
     // AutoUtils.runSelectedCommand();
     // ^ not used anymore. See AutoUtils.setupAutoTrigger(), in robotInit()
 
     // In here should be just any special setup needed before auto starts
     // For example, if we do piece detection, maybe we would want to select a
     // different preset
-  }
+  
 
   @Override
   public void autonomousPeriodic() {
