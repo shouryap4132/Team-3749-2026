@@ -24,6 +24,7 @@ import frc.robot.config.RobotConfig.RobotType;
 import frc.robot.config.RollerConfig.RollerImplementations;
 import frc.robot.subsystems.Climb.Climb;
 import frc.robot.subsystems.IntakeArm.IntakeArm;
+import frc.robot.subsystems.LEDS.LED;
 import frc.robot.subsystems.ShooterHood.ShooterHood;
 import frc.robot.subsystems.roller.Roller;
 import frc.robot.subsystems.swerve.Swerve;
@@ -32,6 +33,7 @@ import frc.robot.config.ButtonBindings;
 import frc.robot.utils.MiscUtils;
 
 public class Robot extends LoggedRobot {
+  public static LED led;
   public static Swerve swerve;
   public static ShooterHood hoodedShooter;
   public static IntakeArm intakeArm;
@@ -87,6 +89,8 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void robotInit() {
+    led = new LED();
+
     swerve = new Swerve();
     intakeArm = new IntakeArm();
     intakeRoller = new Roller(RollerImplementations.INTAKE);
