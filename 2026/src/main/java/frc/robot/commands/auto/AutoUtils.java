@@ -1,10 +1,13 @@
 package frc.robot.commands.auto;
 
-import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.Radians;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
+
+import org.littletonrobotics.junction.Logger;
 
 import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
@@ -12,12 +15,7 @@ import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import choreo.trajectory.SwerveSample;
 import choreo.util.ChoreoAllianceFlipUtil;
-
-import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -32,8 +30,15 @@ public class AutoUtils {
     private static AutoChooser chooser;
     public static ChoreoAllianceFlipUtil.Flipper flipper = ChoreoAllianceFlipUtil.getFlipper();
 
-    private static Map<String, Supplier<Command>> eventMarkerCommands = Map.of(
-            "score", () -> Commands.print("scored!!!"));
+    private static Map<String, Supplier<Command>> eventMarkerCommands = new HashMap<>();
+
+    static {
+        // Initialize default event markers
+        eventMarkerCommands.put("score", () -> Commands.print("scored!!!"));
+        eventMarkerCommands.put("climb", () -> Commands.print("climbed!!!"));
+        eventMarkerCommands.put("intake", () -> Commands.print("intake!!!"));
+
+    }
 
     /**
      * Initializes the auto factory and chooser. Call once during robot init.
@@ -56,6 +61,13 @@ public class AutoUtils {
         chooser = new AutoChooser();
         SmartDashboard.putData("Auto Chooser", chooser);
 
+        chooser.addCmd("Taxi", () -> Autos.getTaxiAuto());
+        chooser.addCmd("Sample", () -> trajectory("Sample")
+                .bindEvent("score", "score") // Bind the "score" event from trajectory to the "score" command
+                .holdFinalPose(false)
+                .build());
+        chooser.addCmd("TripleThreatAuto", () -> Autos.tripleThreatAuto());
+        chooser.addCmd("getStart1LeftNear", () -> Autos.getStart1LeftNear());
         chooser.addCmd("No Auto", () -> Commands.print("[AutoUtils] No Auto Selected"));
         chooser.select("No Auto");
     }
@@ -145,11 +157,65 @@ public class AutoUtils {
         private final String trajectoryName;
         private final Map<String, Supplier<Command>> poseMarkers = new HashMap<>();
         private final Map<Double, Supplier<Command>> timeMarkers = new HashMap<>();
+        private final Map<String, Supplier<Command>> namedEventBindings = new HashMap<>();
         private boolean resetOdometry = true;
         private boolean holdFinalPose = true;
 
         private TrajectoryBuilder(String trajectoryName) {
             this.trajectoryName = trajectoryName;
+        }
+
+        /**
+         * Binds a named event from the Choreo trajectory file to a command.
+         * Use this to handle events defined in the trajectory's JSON file.
+         * 
+         * @param eventName The name of the event as defined in the trajectory file
+         * @param command   The command to run when the event is triggered
+         * @return This builder for chaining
+         */
+        public TrajectoryBuilder bindEvent(String eventName, Supplier<Command> command) {
+            namedEventBindings.put(eventName, command);
+            return this;
+        }
+
+        /**
+         * Binds a named event from the Choreo trajectory file to a command.
+         * 
+         * @param eventName The name of the event as defined in the trajectory file
+         * @param command   The command to run when the event is triggered
+         * @return This builder for chaining
+         */
+        public TrajectoryBuilder bindEvent(String eventName, Command command) {
+            return bindEvent(eventName, () -> command);
+        }
+
+        /**
+         * Binds a named event to a registered global event marker.
+         * 
+         * @param eventName       The name of the event as defined in the trajectory
+         *                        file
+         * @param eventMarkerName The name of the registered global event marker
+         * @return This builder for chaining
+         */
+        public TrajectoryBuilder bindEvent(String eventName, String eventMarkerName) {
+            if (!eventMarkerCommands.containsKey(eventMarkerName)) {
+                System.out.println("[AutoUtils] Warning: Event marker '" + eventMarkerName + "' not registered");
+                return this;
+            }
+            namedEventBindings.put(eventName, eventMarkerCommands.get(eventMarkerName));
+            return this;
+        }
+
+        /**
+         * Automatically binds all registered global event markers to this trajectory.
+         * This will bind any event in the trajectory file that matches a registered
+         * event marker name.
+         * 
+         * @return This builder for chaining
+         */
+        public TrajectoryBuilder withAllEventMarkers() {
+            namedEventBindings.putAll(eventMarkerCommands);
+            return this;
         }
 
         /**
@@ -224,49 +290,26 @@ public class AutoUtils {
             return this;
         }
 
-        public static Command addScoreL3(AutoTrajectory trajectory) {
-        Pose2d endingPose2d = getFinalPose2d(trajectory);
-        // unflip the alliance so that atPose can flip it; it's a quirk of referencing
-        // the trajectory
-        if (DriverStation.getAlliance().get() == Alliance.Red) {
-            endingPose2d = ChoreoAllianceFlipUtil.flip(endingPose2d);
-        }
-        Command scoreL3 = new ScoreL234(ElevatorStates.L3);
-
-        trajectory.atPose(endingPose2d, 1, 1.57).onTrue(scoreL3);
-        trajectory.done().and(() -> scoreL3.isScheduled())
-                .onTrue(
-                        Commands.run(() -> {
-                            Robot.swerve.driveToSample(null);(trajectory.getFinalPose().get(), new Pose2d());
-                        }, Robot.swerve));
-        return scoreL3;
-
-    }
-
-     public static Pose2d getFinalPose2d(AutoTrajectory trajectory) {
-        // if (flippedChooser.getSelected()) {
-        // System.out.println("Flipped Pose:" +
-        // getFlippedPose(trajectory.getFinalPose().get()));
-
-        // return getFlippedPose(trajectory.getFinalPose().get());
-        // } else {
-        return trajectory.getFinalPose().isPresent() ? trajectory.getFinalPose().get() : new Pose2d();
-        // }
-    }
-
         /**
          * Builds and returns the trajectory command.
          */
         public Command build() {
+            // Bind all named events from the trajectory file to their commands
+            for (Map.Entry<String, Supplier<Command>> entry : namedEventBindings.entrySet()) {
+                factory.bind(entry.getKey(), entry.getValue().get());
+            }
+
             AutoRoutine routine = factory.newRoutine(trajectoryName);
             AutoTrajectory traj = routine.trajectory(trajectoryName);
 
+            // Apply pose markers (manual triggers at specific poses)
             for (Map.Entry<String, Supplier<Command>> entry : poseMarkers.entrySet()) {
                 traj.atPose(entry.getKey(), Accuracy.Swerve.TRANSLATE_TOLERANCE.in(Meters),
                         Accuracy.Swerve.ROTATION_TOLERANCE.in(Radians))
                         .onTrue(entry.getValue().get());
             }
 
+            // Apply time markers (manual triggers at specific times)
             for (Map.Entry<Double, Supplier<Command>> entry : timeMarkers.entrySet()) {
                 traj.atTime(entry.getKey()).onTrue(entry.getValue().get());
             }
@@ -289,7 +332,7 @@ public class AutoUtils {
 
             return Commands.sequence(
                     Commands.print("[AutoUtils] Running - " + trajectoryName),
-                    routine.cmd(),
+                    routine.cmd(traj.done()),
                     Commands.print("[AutoUtils] Finished - " + trajectoryName));
         }
 
@@ -300,4 +343,5 @@ public class AutoUtils {
             registerCommand(trajectoryName, () -> this.build());
         }
     }
+
 }

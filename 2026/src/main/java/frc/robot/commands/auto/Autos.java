@@ -1,11 +1,9 @@
 package frc.robot.commands.auto;
 
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 
-public  class Autos {
-    /**
-     * Initializes all autonomous utilities and registers auto routines.
-     */
+public class Autos {
     public Autos() {
         AutoUtils.initAutoUtils();
         registerEventMarkers();
@@ -31,5 +29,55 @@ public  class Autos {
                 .resetOdometry(true)
                 .holdFinalPose(true)
                 .register();
+    }
+
+
+    public static Command getStart1LeftNear() {
+        Command path = AutoUtils.trajectory("Start1_LeftNearIntake")
+                .holdFinalPose(true)
+                .resetOdometry(true)
+                .build();  
+        return path;
+    }
+
+    public static Command tripleThreatAuto() {
+        Command trajectory1 = AutoUtils.trajectory("Start1_LeftNearIntake")
+                .holdFinalPose(false)
+                .build();
+        Command trajectory2 = AutoUtils.trajectory("LeftNearIntake_LeftNearIntakeThrough")
+                .bindEvent("intake", "intake")
+                .holdFinalPose(false)
+                .resetOdometry(false)
+                .build();
+        Command trajectory3 = AutoUtils.trajectory("LeftNearIntakeThrough_Shooter")
+                .bindEvent("score", "score")
+                .holdFinalPose(false)
+                .resetOdometry(false)
+                .build();    
+        
+        return Commands.sequence(trajectory1, trajectory2, trajectory3);
+    }
+
+    public static Command getOutpostScore() {        
+        Command path = AutoUtils.trajectory("Outpost_Shoot")
+                .holdFinalPose(true)
+                .resetOdometry(true)
+                .build();  
+        return path;
+    }
+
+    public static Command outpostScoreTwice() {        
+        Command trajectory1 = Auto
+        return path;
+    }
+
+    
+
+    public static Command getTaxiAuto() {
+        Command path = AutoUtils.trajectory("taxi")
+                .holdFinalPose(true)
+                .resetOdometry(true)
+                .build();  
+        return path;
     }
 }
