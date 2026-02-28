@@ -67,10 +67,48 @@ public class Autos {
     }
 
     public static Command outpostScoreTwice() {        
-        Command trajectory1 = Auto
-        return path;
+         Command trajectory1 = AutoUtils.trajectory("Start1_Shoot")
+                .bindEvent("shoot", "shoot")
+                .holdFinalPose(false)
+                .build();
+        Command trajectory2 = AutoUtils.trajectory("Shoot_Outpost")
+                .bindEvent("intake", "intake")
+                .holdFinalPose(false)
+                .resetOdometry(false)
+                .build();
+        Command trajectory3 = AutoUtils.trajectory("Outpost_Shoot")
+                .bindEvent("shoot", "shoot")
+                .holdFinalPose(false)
+                .resetOdometry(false)
+                .build();    
+        
+        return Commands.sequence(trajectory1, trajectory2, trajectory3);
     }
 
+    public static Command middleScore() {        
+         Command trajectory1 = AutoUtils.trajectory("Start1_LeftNearIntake")
+                .bindEvent("intake_down", "intake_down")
+                .holdFinalPose(false)
+                .build();
+        Command trajectory2 = AutoUtils.trajectory("LeftNearIntake_LeftNearIntakeThrough")
+                .bindEvent("intake_up", "intake_up")
+                .holdFinalPose(false)
+                .resetOdometry(false)
+                .build();
+        Command trajectory3 = AutoUtils.trajectory("LeftNearIntakeThrough_Shoot")
+                .bindEvent("shoot", "shoot")
+                .holdFinalPose(false)
+                .resetOdometry(false)
+                .build();
+        
+        Command trajectory4 = AutoUtils.trajectory("Shoot_Climb")
+                .bindEvent("climb", "climb")
+                .holdFinalPose(false)
+                .resetOdometry(false)
+                .build();
+        
+        return Commands.sequence(trajectory1, trajectory2, trajectory3, trajectory4);
+    }
     
 
     public static Command getTaxiAuto() {

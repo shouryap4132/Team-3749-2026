@@ -34,7 +34,7 @@ public class AutoUtils {
 
     static {
         // Initialize default event markers
-        eventMarkerCommands.put("score", () -> Commands.print("scored!!!"));
+        eventMarkerCommands.put("shoot", () -> Commands.print("scored!!!"));
         eventMarkerCommands.put("climb", () -> Commands.print("climbed!!!"));
         eventMarkerCommands.put("intake", () -> Commands.print("intake!!!"));
 
@@ -61,9 +61,8 @@ public class AutoUtils {
         chooser = new AutoChooser();
         SmartDashboard.putData("Auto Chooser", chooser);
 
-        chooser.addCmd("Taxi", () -> Autos.getTaxiAuto());
         chooser.addCmd("Sample", () -> trajectory("Sample")
-                .bindEvent("score", "score") // Bind the "score" event from trajectory to the "score" command
+                .bindEvent("shoot", "shoot") // Bind the "score" event from trajectory to the "score" command
                 .holdFinalPose(false)
                 .build());
         chooser.addCmd("TripleThreatAuto", () -> Autos.tripleThreatAuto());
